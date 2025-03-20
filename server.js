@@ -5,7 +5,13 @@ const axios = require("axios");
 const extractToken = require("./middleware/authMiddleware");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.ORIGIN,
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
 app.use(express.json());
 
 const CLIENT_ID = process.env.CLIENT_ID;
