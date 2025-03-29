@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const qs = require("qs");
 const extractToken = require("./middleware/authMiddleware");
 
 const app = express();
@@ -193,12 +194,12 @@ app.get("/auth/callback", async (req, res) => {
       }
     );
 
-    const accessToken = tokenResponse?.data?.access_token;
-    res.json({tokenResponse, accessToken});
+    const accessToken = tokenResponse.data.access_token;
+    res.json(accessToken);
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Failed to fetch token", details: error });
+      .json({ error: "Failed to fetch token", details: error.response.data });
   }
 });
 
