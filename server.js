@@ -7,7 +7,7 @@ const extractToken = require("./middleware/authMiddleware");
 const app = express();
 app.use(
   cors({
-    origin: process.env.ORIGIN,
+    origin: process.env.ORIGIN_TEST,
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",
   })
