@@ -26,18 +26,19 @@ app.get("/get-token", async (req, res) => {
       `${SW_CLIENT_ID}:${SW_CLIENT_SECRET}`
     ).toString("base64");
 
-    const response = await axios.post(
-      "https://api.swoogo.com/api/v1/oauth2/token.json",
-      "grant_type=client_credentials",
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${base64Credentials}`,
-        },
-      }
-    );
+    // const response = await axios.post(
+    //   "https://api.swoogo.com/api/v1/oauth2/token.json",
+    //   "grant_type=client_credentials",
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/x-www-form-urlencoded",
+    //       Authorization: `Basic ${base64Credentials}`,
+    //     },
+    //   }
+    // );
 
-    res.json(response.data);
+    // res.json(response.data);
+    res.json({creds: {SW_CLIENT_ID, SW_CLIENT_SECRET}})
   } catch (error) {
     // DEBUG
     res
