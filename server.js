@@ -18,7 +18,7 @@ const SW_CLIENT_ID = process.env.SW_CLIENT_ID;
 const SW_CLIENT_SECRET = process.env.SW_CLIENT_SECRET;
 const LI_CLIENT_ID = process.env.LI_CLIENT_ID;
 const LI_CLIENT_SECRET = process.env.LI_CLIENT_SECRET;
-const redirectURI = "http://localhost:3000/auth/callback";
+const redirectURI = "https://swoogo-image-generation-pl-git-018d7f-muhammad-noshads-projects.vercel.app/auth/callback";
 
 app.get("/get-token", async (req, res) => {
   try {
