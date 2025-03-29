@@ -18,7 +18,7 @@ const SW_CLIENT_ID = process.env.SW_CLIENT_ID;
 const SW_CLIENT_SECRET = process.env.SW_CLIENT_SECRET;
 const LI_CLIENT_ID = process.env.LI_CLIENT_ID;
 const LI_CLIENT_SECRET = process.env.LI_CLIENT_SECRET;
-const redirectURI = "https://swoogo-image-generation-plugin-backend-euif.vercel.app/auth/callback";
+const REDIRECT_URL = process.env.REDIRECT_URL;
 
 app.get("/get-token", async (req, res) => {
   try {
@@ -26,24 +26,22 @@ app.get("/get-token", async (req, res) => {
       `${SW_CLIENT_ID}:${SW_CLIENT_SECRET}`
     ).toString("base64");
 
-    // const response = await axios.post(
-    //   "https://api.swoogo.com/api/v1/oauth2/token.json",
-    //   "grant_type=client_credentials",
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/x-www-form-urlencoded",
-    //       Authorization: `Basic ${base64Credentials}`,
-    //     },
-    //   }
-    // );
+    const response = await axios.post(
+      "https://api.swoogo.com/api/v1/oauth2/token.json",
+      "grant_type=client_credentials",
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${base64Credentials}`,
+        },
+      }
+    );
 
-    // res.json(response.data);
-    res.json({creds: {SW_CLIENT_ID, SW_CLIENT_SECRET}})
+    res.json(response.data);
   } catch (error) {
-    // DEBUG
     res
       .status(500)
-      .json({ error: "Failed to fetch token", details: error.response.data, creds: {SW_CLIENT_ID, SW_CLIENT_SECRET} });
+      .json({ error: "Failed to fetch token", details: error.response.data });
   }
 });
 
@@ -186,7 +184,7 @@ app.get("/auth/callback", async (req, res) => {
       qs.stringify({
         grant_type: "authorization_code",
         code,
-        redirect_uri: redirectURI,
+        redirect_uri: REDIRECT_URL,
         client_id: LI_CLIENT_ID,
         client_secret: LI_CLIENT_SECRET,
       }),
