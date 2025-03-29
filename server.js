@@ -198,7 +198,7 @@ app.get("/auth/callback", async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Failed to fetch token", details: error.response.data });
+      .json({ error: "Failed to fetch token", details: error });
   }
 });
 
