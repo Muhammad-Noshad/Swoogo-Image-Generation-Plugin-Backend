@@ -39,9 +39,10 @@ app.get("/get-token", async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
+    // DEBUG
     res
       .status(500)
-      .json({ error: "Failed to fetch token", details: error.response.data });
+      .json({ error: "Failed to fetch token", details: error.response.data, creds: {SW_CLIENT_ID, SW_CLIENT_SECRET} });
   }
 });
 
