@@ -204,7 +204,7 @@ app.get("/auth/callback", async (req, res) => {
   }
 });
 
-router.get("/linkedin/user-id", async (req, res) => {
+app.get("/linkedin/user-id", async (req, res) => {
   const { accessToken } = req.query;
 
   if (!accessToken) {
@@ -224,7 +224,7 @@ router.get("/linkedin/user-id", async (req, res) => {
   }
 });
 
-router.post("/linkedin/upload-image", async (req, res) => {
+app.post("/linkedin/upload-image", async (req, res) => {
   const { accessToken, userId } = req.body;
 
   if (!accessToken || !userId) {
@@ -264,7 +264,7 @@ router.post("/linkedin/upload-image", async (req, res) => {
   }
 });
 
-router.post("/linkedin/create-post", async (req, res) => {
+app.post("/linkedin/create-post", async (req, res) => {
   const { accessToken, text, assetId, userId } = req.body;
 
   if (!accessToken || !text || !assetId || !userId) {
