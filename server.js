@@ -14,13 +14,17 @@ app.use(
 );
 app.use(express.json());
 
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const BASE64_CREDENTIALS = process.env.BASE64_CREDENTIALS;
+const SW_CLIENT_ID = process.env.SW_CLIENT_ID;
+const SW_CLIENT_SECRET = process.env.SW_CLIENT_SECRET;
+const LI_CLIENT_ID = process.env.LI_CLIENT_ID;
+const LI_CLIENT_SECRET = process.env.LI_CLIENT_SECRET;
+const redirectURI = "http://localhost:3000/auth/callback";
 
 app.get("/get-token", async (req, res) => {
   try {
-    const base64Credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+    const base64Credentials = Buffer.from(
+      `${SW_CLIENT_ID}:${SW_CLIENT_SECRET}`
+    ).toString("base64");
 
     const response = await axios.post(
       "https://api.swoogo.com/api/v1/oauth2/token.json",
@@ -28,14 +32,16 @@ app.get("/get-token", async (req, res) => {
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "Authorization": `Basic ${base64Credentials}`
-        }
+          Authorization: `Basic ${base64Credentials}`,
+        },
       }
     );
 
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch token", details: error.response.data });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch token", details: error.response.data });
   }
 });
 
@@ -43,10 +49,10 @@ app.get("/event/:id", extractToken, async (req, res) => {
   try {
     const eventId = req.params.id;
     const token = req.token;
-    
-    if(!eventId) {
+
+    if (!eventId) {
       return res.status(400).json({
-        error: "Event ID is required"
+        error: "Event ID is required",
       });
     }
     // 244694
@@ -54,14 +60,17 @@ app.get("/event/:id", extractToken, async (req, res) => {
       `https://api.swoogo.com/api/v1/events/${eventId}.json`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch event details", details: error.response.data });
+    res.status(500).json({
+      error: "Failed to fetch event details",
+      details: error.response.data,
+    });
   }
 });
 
@@ -69,10 +78,10 @@ app.get("/registrants/:eventId", extractToken, async (req, res) => {
   try {
     const eventId = req.params.eventId;
     const token = req.token;
-    
-    if(!eventId) {
+
+    if (!eventId) {
       return res.status(400).json({
-        error: "Event ID is required"
+        error: "Event ID is required",
       });
     }
     // 244694
@@ -80,14 +89,17 @@ app.get("/registrants/:eventId", extractToken, async (req, res) => {
       `https://api.swoogo.com/api/v1/registrants.json?event_id=${eventId}`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch registrant details", details: error.response.data });
+    res.status(500).json({
+      error: "Failed to fetch registrant details",
+      details: error.response.data,
+    });
   }
 });
 
@@ -95,10 +107,10 @@ app.get("/registrant/:id", extractToken, async (req, res) => {
   try {
     const registrantId = req.params.id;
     const token = req.token;
-    
-    if(!registrantId) {
+
+    if (!registrantId) {
       return res.status(400).json({
-        error: "Registrant ID is required"
+        error: "Registrant ID is required",
       });
     }
     // 244694
@@ -106,14 +118,17 @@ app.get("/registrant/:id", extractToken, async (req, res) => {
       `https://api.swoogo.com/api/v1/registrants/${registrantId}.json`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch registrant details", details: error.response.data });
+    res.status(500).json({
+      error: "Failed to fetch registrant details",
+      details: error.response.data,
+    });
   }
 });
 
@@ -124,21 +139,21 @@ app.get("/image/:type/:id/:imageType", extractToken, async (req, res) => {
     const token = req.token;
     const imageType = req.params.imageType;
 
-    if(!type) {
+    if (!type) {
       return res.status(400).json({
-        error: "Object Type is required"
+        error: "Object Type is required",
       });
     }
 
-    if(!id) {
+    if (!id) {
       return res.status(400).json({
-        error: "Object ID is required"
+        error: "Object ID is required",
       });
     }
 
-    if(!imageType) {
+    if (!imageType) {
       return res.status(400).json({
-        error: "Image Type is required"
+        error: "Image Type is required",
       });
     }
     // TYPE: registrant
@@ -147,14 +162,44 @@ app.get("/image/:type/:id/:imageType", extractToken, async (req, res) => {
       `https://api.swoogo.com/api/v1/image/${type}/${id}/${imageType}.json`,
       {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch images", details: error.response.data });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch images", details: error.response.data });
+  }
+});
+
+app.get("/auth/callback", async (req, res) => {
+  const { code } = req.query;
+
+  try {
+    const tokenResponse = await axios.post(
+      "https://www.linkedin.com/oauth/v2/accessToken",
+      qs.stringify({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectURI,
+        client_id: LI_CLIENT_ID,
+        client_secret: LI_CLIENT_SECRET,
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+    console.log(accessToken);
+    res.json(accessToken);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch token", details: error.response.data });
   }
 });
 
