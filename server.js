@@ -195,7 +195,8 @@ app.get("/auth/callback", async (req, res) => {
     );
 
     const accessToken = tokenResponse.data.access_token;
-    res.json(accessToken);
+    
+    res.redirect(`${process.env.ORIGIN}?token=${accessToken}`);
   } catch (error) {
     res
       .status(500)
