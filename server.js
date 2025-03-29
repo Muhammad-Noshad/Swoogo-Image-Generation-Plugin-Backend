@@ -193,10 +193,8 @@ app.get("/auth/callback", async (req, res) => {
       }
     );
 
-    console.log(tokenResponse);
-    const accessToken = tokenResponse.data.access_token;
-    console.log(accessToken);
-    res.json(accessToken);
+    const accessToken = tokenResponse?.data?.access_token;
+    res.json({tokenResponse, accessToken});
   } catch (error) {
     res
       .status(500)
