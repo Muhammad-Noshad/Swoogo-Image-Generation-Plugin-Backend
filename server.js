@@ -193,6 +193,7 @@ app.get("/auth/callback", async (req, res) => {
       }
     );
 
+    console.log(tokenResponse);
     const accessToken = tokenResponse.data.access_token;
     console.log(accessToken);
     res.json(accessToken);
