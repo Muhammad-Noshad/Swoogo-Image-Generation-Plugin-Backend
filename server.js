@@ -204,4 +204,113 @@ app.get("/auth/callback", async (req, res) => {
   }
 });
 
+router.get("/linkedin/user-id", async (req, res) => {
+  const { accessToken } = req.query;
+
+  if (!accessToken) {
+    return res.status(400).json({ error: "Missing accessToken" });
+  }
+
+  try {
+    const profileResponse = await axios.get("https://api.linkedin.com/v2/me", {
+      headers: { Authorization: `Bearer ${accessToken}`, "X-Restli-Protocol-Version": "2.0.0" },
+    });
+
+    const userId = profileResponse.data.id;
+    res.json({ userId });
+  } catch (error) {
+    console.error("Failed to fetch LinkedIn user ID:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to fetch user ID", details: error.response?.data || error.message });
+  }
+});
+
+router.post("/linkedin/upload-image", async (req, res) => {
+  const { accessToken, userId } = req.body;
+
+  if (!accessToken || !userId) {
+    return res.status(400).json({ error: "Missing accessToken or userId" });
+  }
+
+  try {
+    const registerUrl = "https://api.linkedin.com/v2/assets?action=registerUpload";
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
+    };
+
+    const uploadRequestBody = {
+      registerUploadRequest: {
+        recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+        owner: `urn:li:person:${userId}`,
+        serviceRelationships: [
+          {
+            relationshipType: "OWNER",
+            identifier: "urn:li:userGeneratedContent",
+          },
+        ],
+      },
+    };
+
+    const response = await axios.post(registerUrl, uploadRequestBody, { headers });
+    const uploadUrl = response.data.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl;
+    const assetId = response.data.value.asset;
+
+    res.json({ uploadUrl, assetId });
+  } catch (error) {
+    console.error("LinkedIn Image Upload Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to register image upload", details: error.response?.data || error.message });
+  }
+});
+
+router.post("/linkedin/create-post", async (req, res) => {
+  const { accessToken, text, assetId, userId } = req.body;
+
+  if (!accessToken || !text || !assetId || !userId) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const postUrl = "https://api.linkedin.com/v2/ugcPosts";
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
+    };
+
+    const postBody = {
+      author: `urn:li:person:${userId}`,
+      lifecycleState: "PUBLISHED",
+      specificContent: {
+        "com.linkedin.ugc.ShareContent": {
+          shareCommentary: {
+            text: text,
+          },
+          // shareMediaCategory: "IMAGE",
+          // media: [
+          //   {
+          //     status: "READY",
+          //     description: { text: "An amazing image!" },
+          //     media: assetId,
+          //     title: { text: "My Image Post" },
+          //   },
+          // ],
+        },
+      },
+      visibility: {
+        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+      },
+    };
+
+    const response = await axios.post(postUrl, postBody, { headers });
+
+    res.json({ success: true, postResponse: response.data });
+  } catch (error) {
+    console.error("Error creating LinkedIn post:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to create post", details: error.response?.data || error.message });
+  }
+});
+
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));
