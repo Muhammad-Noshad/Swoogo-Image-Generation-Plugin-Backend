@@ -267,7 +267,8 @@ app.post("/linkedin/upload-image", upload.single("image"), async (req, res) => {
       },
     }, { headers });
 
-    const { uploadUrl, asset } = registerResponse.data.value;
+    const { uploadUrl } = registerResponse.data.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"];
+    const { asset } = registerResponse.data.value;
 
     await axios.put(uploadUrl, imageFile.buffer, {
       headers: { "Content-Type": imageFile.mimetype },
