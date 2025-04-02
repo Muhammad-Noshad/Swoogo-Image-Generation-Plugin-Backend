@@ -231,12 +231,10 @@ app.get("/linkedin/user-id", async (req, res) => {
       "Failed to fetch LinkedIn user ID:",
       error.response?.data || error.message
     );
-    res
-      .status(500)
-      .json({
-        error: "Failed to fetch user ID",
-        details: error.response?.data || error.message,
-      });
+    res.status(500).json({
+      error: "Failed to fetch user ID",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
@@ -249,25 +247,35 @@ app.post("/linkedin/upload-image", upload.single("image"), async (req, res) => {
   }
 
   try {
-    const registerUrl = "https://api.linkedin.com/v2/assets?action=registerUpload";
+    const registerUrl =
+      "https://api.linkedin.com/v2/assets?action=registerUpload";
     const headers = {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       "X-Restli-Protocol-Version": "2.0.0",
     };
 
-    const registerResponse = await axios.post(registerUrl, {
-      registerUploadRequest: {
-        recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
-        owner: `urn:li:person:${userId}`,
-        serviceRelationships: [{
-          relationshipType: "OWNER",
-          identifier: "urn:li:userGeneratedContent",
-        }],
+    const registerResponse = await axios.post(
+      registerUrl,
+      {
+        registerUploadRequest: {
+          recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+          owner: `urn:li:person:${userId}`,
+          serviceRelationships: [
+            {
+              relationshipType: "OWNER",
+              identifier: "urn:li:userGeneratedContent",
+            },
+          ],
+        },
       },
-    }, { headers });
+      { headers }
+    );
 
-    const { uploadUrl } = registerResponse.data.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"];
+    const { uploadUrl } =
+      registerResponse.data.value.uploadMechanism[
+        "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
+      ];
     const { asset } = registerResponse.data.value;
 
     await axios.put(uploadUrl, imageFile.buffer, {
@@ -277,7 +285,7 @@ app.post("/linkedin/upload-image", upload.single("image"), async (req, res) => {
     res.json({ assetId: asset });
   } catch (error) {
     console.error("LinkedIn error:", error.response?.data || error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Upload failed",
       details: error.response?.data || error.message,
     });
@@ -331,12 +339,10 @@ app.post("/linkedin/create-post", async (req, res) => {
       "Error creating LinkedIn post:",
       error.response?.data || error.message
     );
-    res
-      .status(500)
-      .json({
-        error: "Failed to create post",
-        details: error.response?.data || error.message,
-      });
+    res.status(500).json({
+      error: "Failed to create post",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
