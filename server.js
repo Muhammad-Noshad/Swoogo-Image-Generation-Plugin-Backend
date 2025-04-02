@@ -195,7 +195,7 @@ app.get("/auth/callback", async (req, res) => {
     );
 
     const accessToken = tokenResponse.data.access_token;
-    
+
     res.redirect(`${process.env.ORIGIN}?token=${accessToken}`);
   } catch (error) {
     res
@@ -212,15 +212,29 @@ app.get("/linkedin/user-id", async (req, res) => {
   }
 
   try {
-    const profileResponse = await axios.get("https://api.linkedin.com/v2/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}`, "X-Restli-Protocol-Version": "2.0.0" },
-    });
+    const profileResponse = await axios.get(
+      "https://api.linkedin.com/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+        },
+      }
+    );
 
     const userId = profileResponse.data.sub;
     res.json({ userId });
   } catch (error) {
-    console.error("Failed to fetch LinkedIn user ID:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to fetch user ID", details: error.response?.data || error.message });
+    console.error(
+      "Failed to fetch LinkedIn user ID:",
+      error.response?.data || error.message
+    );
+    res
+      .status(500)
+      .json({
+        error: "Failed to fetch user ID",
+        details: error.response?.data || error.message,
+      });
   }
 });
 
@@ -232,7 +246,8 @@ app.post("/linkedin/upload-image", async (req, res) => {
   }
 
   try {
-    const registerUrl = "https://api.linkedin.com/v2/assets?action=registerUpload";
+    const registerUrl =
+      "https://api.linkedin.com/v2/assets?action=registerUpload";
 
     const headers = {
       Authorization: `Bearer ${accessToken}`,
@@ -253,14 +268,27 @@ app.post("/linkedin/upload-image", async (req, res) => {
       },
     };
 
-    const response = await axios.post(registerUrl, uploadRequestBody, { headers });
-    const uploadUrl = response.data.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl;
+    const response = await axios.post(registerUrl, uploadRequestBody, {
+      headers,
+    });
+
+    const uploadUrl =
+      response.data.value.uploadMechanism[
+        "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
+      ].uploadUrl;
     const assetId = response.data.value.asset;
 
     res.json({ uploadUrl, assetId });
   } catch (error) {
-    console.error("LinkedIn Image Upload Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to register image upload", details: error.response?.data || error.message });
+    console.error("LinkedIn API Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    res.status(500).json({
+      error: "Failed to register upload",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
@@ -293,9 +321,7 @@ app.post("/linkedin/create-post", async (req, res) => {
           // media: [
           //   {
           //     status: "READY",
-          //     description: { text: "An amazing image!" },
           //     media: assetId,
-          //     title: { text: "My Image Post" },
           //   },
           // ],
         },
@@ -309,9 +335,17 @@ app.post("/linkedin/create-post", async (req, res) => {
 
     res.json({ success: true, postResponse: response.data });
   } catch (error) {
-    console.error(error)
-    console.error("Error creating LinkedIn post:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to create post", details: error.response?.data || error.message });
+    console.error(error);
+    console.error(
+      "Error creating LinkedIn post:",
+      error.response?.data || error.message
+    );
+    res
+      .status(500)
+      .json({
+        error: "Failed to create post",
+        details: error.response?.data || error.message,
+      });
   }
 });
 
