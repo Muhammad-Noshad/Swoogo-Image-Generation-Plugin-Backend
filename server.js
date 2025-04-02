@@ -308,14 +308,13 @@ app.post("/linkedin/create-post", async (req, res) => {
           shareCommentary: {
             text: text,
           },
-          shareMediaCategory: "NONE",
-          // shareMediaCategory: "IMAGE",
-          // media: [
-          //   {
-          //     status: "READY",
-          //     media: assetId,
-          //   },
-          // ],
+          shareMediaCategory: "IMAGE",
+          media: [
+            {
+              status: "READY",
+              media: assetId,
+            },
+          ],
         },
       },
       visibility: {
