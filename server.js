@@ -1,10 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 const axios = require("axios");
 const qs = require("qs");
 const extractToken = require("./middleware/authMiddleware");
 
+const upload = multer();
 const app = express();
 app.use(
   cors({
@@ -238,55 +240,44 @@ app.get("/linkedin/user-id", async (req, res) => {
   }
 });
 
-app.post("/linkedin/upload-image", async (req, res) => {
+app.post("/linkedin/upload-image", upload.single("image"), async (req, res) => {
   const { accessToken, userId } = req.body;
+  const imageFile = req.file;
 
-  if (!accessToken || !userId) {
-    return res.status(400).json({ error: "Missing accessToken or userId" });
+  if (!accessToken || !userId || !imageFile) {
+    return res.status(400).json({ error: "Missing fields or image" });
   }
 
   try {
-    const registerUrl =
-      "https://api.linkedin.com/v2/assets?action=registerUpload";
-
+    const registerUrl = "https://api.linkedin.com/v2/assets?action=registerUpload";
     const headers = {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       "X-Restli-Protocol-Version": "2.0.0",
     };
 
-    const uploadRequestBody = {
+    const registerResponse = await axios.post(registerUrl, {
       registerUploadRequest: {
         recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
         owner: `urn:li:person:${userId}`,
-        serviceRelationships: [
-          {
-            relationshipType: "OWNER",
-            identifier: "urn:li:userGeneratedContent",
-          },
-        ],
+        serviceRelationships: [{
+          relationshipType: "OWNER",
+          identifier: "urn:li:userGeneratedContent",
+        }],
       },
-    };
+    }, { headers });
 
-    const response = await axios.post(registerUrl, uploadRequestBody, {
-      headers,
+    const { uploadUrl, asset } = registerResponse.data.value;
+
+    await axios.put(uploadUrl, imageFile.buffer, {
+      headers: { "Content-Type": imageFile.mimetype },
     });
 
-    const uploadUrl =
-      response.data.value.uploadMechanism[
-        "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
-      ].uploadUrl;
-    const assetId = response.data.value.asset;
-
-    res.json({ uploadUrl, assetId });
+    res.json({ assetId: asset });
   } catch (error) {
-    console.error("LinkedIn API Error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-    res.status(500).json({
-      error: "Failed to register upload",
+    console.error("LinkedIn error:", error.response?.data || error.message);
+    res.status(500).json({ 
+      error: "Upload failed",
       details: error.response?.data || error.message,
     });
   }
