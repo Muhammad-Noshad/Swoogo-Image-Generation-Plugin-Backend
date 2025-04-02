@@ -212,11 +212,11 @@ app.get("/linkedin/user-id", async (req, res) => {
   }
 
   try {
-    const profileResponse = await axios.get("https://api.linkedin.com/v2/me", {
+    const profileResponse = await axios.get("https://api.linkedin.com/v2/userinfo", {
       headers: { Authorization: `Bearer ${accessToken}`, "X-Restli-Protocol-Version": "2.0.0" },
     });
 
-    const userId = profileResponse.data.id;
+    const userId = profileResponse.data.sub;
     res.json({ userId });
   } catch (error) {
     console.error("Failed to fetch LinkedIn user ID:", error.response?.data || error.message);
@@ -288,6 +288,7 @@ app.post("/linkedin/create-post", async (req, res) => {
           shareCommentary: {
             text: text,
           },
+          shareMediaCategory: "NONE",
           // shareMediaCategory: "IMAGE",
           // media: [
           //   {
@@ -308,6 +309,7 @@ app.post("/linkedin/create-post", async (req, res) => {
 
     res.json({ success: true, postResponse: response.data });
   } catch (error) {
+    console.error(error)
     console.error("Error creating LinkedIn post:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to create post", details: error.response?.data || error.message });
   }
